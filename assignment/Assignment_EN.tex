@@ -1,0 +1,170 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm,headheight=16pt]{geometry}
+\usepackage{amsmath,amssymb,graphicx,array,longtable,booktabs}
+\usepackage{microtype,xcolor,hyperref,xurl,fancyhdr}
+\definecolor{Navy}{HTML}{17324D}
+\definecolor{Teal}{HTML}{087F8C}
+\definecolor{Gold}{HTML}{B88128}
+\hypersetup{colorlinks=true,linkcolor=Navy,urlcolor=Teal,bookmarksnumbered=true,hypertexnames=false}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{4em}
+\setcounter{tocdepth}{1}
+\pagestyle{fancy}\fancyhf{}
+\fancyfoot[R]{\small\thepage}
+\fancyfoot[L]{\small\sffamily Sharif University of Technology}
+\renewcommand{\headrulewidth}{0.3pt}
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}{-3.2ex plus -1ex minus -.2ex}{1.6ex plus .2ex}{\normalfont\Large\sffamily\bfseries\color{Navy}}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}{-2.5ex plus -1ex minus -.2ex}{1.2ex plus .2ex}{\normalfont\large\sffamily\bfseries\color{Teal}}}
+\makeatother
+\fancyhead[L]{\small\sffamily\color{Navy}Sharif University of Technology}\fancyhead[R]{\small\sffamily\color{Teal}Project Assignment}\begin{document}
+\begin{titlepage}\centering\vspace*{7mm}
+\includegraphics[width=31mm]{assets/sharif_emblem_en.png}\par\vspace{5mm}
+{\Large\sffamily\bfseries\color{Navy}SHARIF UNIVERSITY OF TECHNOLOGY\par}
+\vspace{2mm}{\sffamily Department of Electrical Engineering\par}
+\vspace{17mm}{\color{Teal}\rule{\linewidth}{1.4pt}}\par\vspace{6mm}
+{\large\sffamily\color{Teal}PROJECT ASSIGNMENT\par}
+\vspace{8mm}{\huge\sffamily\bfseries\color{Navy}Large-Scale Traffic Pattern Mining and Detection-Consistency Analysis\par}
+\vspace{9mm}{\color{Gold}\rule{45mm}{1pt}}\par\vfill
+\begin{minipage}{.88\linewidth}
+{\sffamily\color{Teal}INSTRUCTOR / INSTRUCTORS}\par
+Dr Iman Gholampour\par\vspace{7mm}
+{\sffamily\color{Teal}ACADEMIC CONTEXT}\par
+Big Data Processing\par\end{minipage}\vfill
+\end{titlepage}
+\tableofcontents\clearpage
+\section{Scenario and independent deliverables}
+
+Act as a data-analysis engineer for a road authority. Use vehicle-passage records to investigate registration quality, traffic patterns, clustering, streaming, graphs, and anomalies. Minimum implementation does not guarantee the top relative grade:\allowbreak{} justify the problem, assumptions, parameters, quality checks, visualization, and decision relevance. For each of the four parts provide runnable documented code, configurable parameters, meaningful visualization, a separate engineering report, and a presentation video no longer than ten minutes. Thus the course requires four independent reports and four videos. Each report explains problem/\allowbreak{}assumptions, data/\allowbreak{}preprocessing, model/\allowbreak{}parameter design, results/\allowbreak{}insights, validation and sensitivity, limitations, and extensions. README documents execution, inputs/\allowbreak{}outputs, dependencies, and key parameters. A video explains purpose, methods, functions or endpoints, interpretation, and limitations. The supplied files determine which deliverables were actually archived;\allowbreak{} do not infer missing videos from these requirements.
+
+\section{Data dictionary and identifier interpretation}
+
+CompanyCode denotes operator/\allowbreak{}contractor;\allowbreak{} DeviceID identifies a camera;\allowbreak{} Lane identifies its lane;\allowbreak{} PassedTime is the passage timestamp;\allowbreak{} ReceivedTime is system receipt;\allowbreak{} event\_\allowbreak{}ts uses parsed PassedTime and otherwise the declared receipt-time fallback. PlateType and VehicleType are category codes;\allowbreak{} Speed is recorded speed;\allowbreak{} road\_\allowbreak{}code/\allowbreak{}road\_\allowbreak{}name identify the road;\allowbreak{} state\_\allowbreak{}name/\allowbreak{}state\_\allowbreak{}code identify the province. StreetID, PassedVehicleRecordsId, and SystemCode are internal/\allowbreak{}system identifiers. The assignment describes nine-digit encoded plate values with a two-digit letter code. Other digits have been consistently indexed for privacy. Treat them as pseudonymous identifiers, not recoverable raw registration numbers. Code 21 represents the letter Ain, suggested as a heavy-fleet proxy. A proxy is not guaranteed ground-truth vehicle classification. Keep identifiers as strings when leading zeros matter.
+
+\section{Part 1: frequent patterns, registration-quality heuristics, and LSH}
+
+Load and preprocess the data and optimize access with a B-tree-based index as requested. Consider (PlateValue,event\_\allowbreak{}ts), DeviceID, or a justified alternative. Measure at least one relevant operation before/\allowbreak{}after indexing, such as basket construction, route preparation, or exact Jaccard computation. Explain when the index helps and when it does not. A columnar file layout can be an alternative experiment but is not literally the requested B-tree. Define BasketID=\allowbreak{}(PlateValue,Window(event\_\allowbreak{}ts,delta\_\allowbreak{}t)). Try a short interval such as 30 minutes and one hour;\allowbreak{} justify the choice and examine sensitivity. Define items as (CompanyCode,DeviceID), or compare a stated alternative. Deduplicate items within a set-based basket. Use Apriori or PCY as specified and extract/\allowbreak{}interpret frequent triples with a justified minimum support. A triple is co-occurrence, not an automatically established ordered route. Use frequent patterns to identify potentially missing registrations. State how an expected observation and denominator are formed, compute camera-level miss rates, aggregate to company level, and compare traffic volume with rate. Consider speed bands, lane, and time effects. Explain possible alternate routes and incomplete observation before declaring hardware failure. For each vehicle extract a set of road codes, generate MinHash signatures, use LSH banding to propose similar pairs, and compute exact Jaccard for candidates. Report signature/\allowbreak{}band parameters, sample restrictions, and thresholds. Compare miss heuristics inside similar-route groups with the overall rate. Sets do not preserve traversal order, travel time, or lane;\allowbreak{} matching them does not prove an identical physical trip. Deeper analysis and parameter sensitivity form part of evaluation.
+
+\section{Part 2: five entity-clustering scenarios}
+
+\begin{enumerate}
+
+\item Camera behavior:\allowbreak{} aggregate by DeviceID, including 24-hour temporal profile, speed mean/\allowbreak{}dispersion, heavy ratio, and weekly stability. Normalize to avoid scale domination, use PCA, compare K-Means initializations, and interpret roles such as transit/\allowbreak{}night, morning commute, or uniform traffic.
+
+\item Lane behavior:\allowbreak{} use (DeviceID,Lane), with temporal profile, speed, fleet composition, and lane share of camera traffic. Normalize, reduce dimension, cluster, and explain within-camera differences.
+
+\item Road behavior:\allowbreak{} aggregate all cameras on road\_\allowbreak{}code or road\_\allowbreak{}name. Include time distribution, speed, fleet composition, and plate diversity. Interpret road groups and discuss policy relevance without claiming that clustering alone selects an optimal intervention.
+
+\item Vehicle behavior:\allowbreak{} use hashed/\allowbreak{}pseudonymous MasterPlateValue, require sufficient records, and describe usual hours, road diversity, speed, and vehicle-type proxy. The limited one-week horizon and large identity count require careful sampling and noise thresholds.
+
+\item Camera data quality:\allowbreak{} aggregate receipt-minus-passage delay, invalid PlateType, missing fields, and temporal instability. Group devices by observed quality profiles and propose investigation priorities. Validate any diagnosis against external maintenance evidence.
+
+\end{enumerate}
+\section{Part 3: streaming architecture and API presentation}
+
+Select the busiest day by PassedTime/\allowbreak{}event date. Extract its records, order by ReceivedTime, and replay them line by line through a socket producer. Make rate configurable and compare several rates, with the assignment suggesting examples around 50, 100, and 1000 records per second. Messages include DeviceID, PlateValue, event\_\allowbreak{}ts, ReceivedTime, Speed, road\_\allowbreak{}code, and state\_\allowbreak{}name. Preserve original timestamps independently of replay wall time. Choose a window duration, such as one or five minutes, and a slide. Provide structured API endpoints for every implemented analysis and a separate visualization program that calls them. FastAPI is suggested but not mandatory. Document endpoint fields, units, freshness, and errors. Compute total and per-camera counts, and the three busiest cameras per window. Explain the need for aggregation, the sensitivity/\allowbreak{}stability tradeoff, and short/\allowbreak{}long-window effects. Analyze receipt-minus-event delay with mean, maximum, and distribution;\allowbreak{} compare event-time and receipt-time windows and late-data handling. Compare at least two window lengths. Examine camera shares, unusually dominant cameras, and rank stability. Compute average speed and study its relationship to counts. Define any congestion indicator explicitly and discuss its limits. Identify busiest roads and provincial patterns/\allowbreak{}hotspots. Keep geographic aggregation distinct from a validated road-density measurement. Maintain previous-window state and cumulative counts since stream start. Ensure overlapping-window records are counted only once in true cumulative totals;\allowbreak{} repeated window updates need stable identities or equivalent idempotent logic. Maintain an online EWMA mean/\allowbreak{}variation baseline per camera. Calculate a drop anomaly score and require L consecutive abnormal windows before alarming. Return camera, window, observed count, baseline mean/\allowbreak{}variation, score, and alarm status. Include zero-count windows for monitored inventory so fully silent cameras are visible. Design a health index from stability, fluctuations, and anomalies with justified thresholds for healthy/\allowbreak{}suspicious/\allowbreak{}critical. Forecast the next window from past windows, compare prediction and actual count, and report quantitative error across a sufficient sequence. A forecast or alert is not a validated diagnosis merely because the dashboard displays it.
+
+\section{Part 4: movement graphs, PageRank, HITS, and comparison}
+
+Sort each vehicle's observations and form consecutive transitions. Build directed camera, road, and province graphs, with optional additional models. Report node/\allowbreak{}edge counts, in/\allowbreak{}out degree or weighted strength, and prominent links. Define structural anomalies precisely, such as changes in common links, unusual travel times, or incomplete next observations. Select meaningful subgraphs and visualize them. Run PageRank on all three graphs, explain what weighted structural importance means at each level, incorporate rank into explicitly defined anomaly criteria, and visualize node/\allowbreak{}link importance. Specify damping, teleportation, weights, dangling nodes, convergence, and any custom link-importance formula. Run HITS on the camera graph and interpret hub/\allowbreak{}authority roles. Define a bipartite model such as vehicle-to-camera, analyze its HITS output, and compare the information it provides with consecutive-camera movement. Define role-based anomalies and visualize ranks/\allowbreak{}roles. Compare structural, rank-based, and role-based anomaly results and their limitations. Missing observations, routes, sampling, one-way infrastructure, and timing gaps can all produce apparent asymmetry.
+
+\section{Complete operator-code reference}
+
+Operator names are rendered in English transliteration. Contract descriptors distinguish existing/\allowbreak{}new and provincial/\allowbreak{}headquarters entries;\allowbreak{} identifiers are unchanged.
+
+
+\begingroup\small\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{@{}p{0.3100\linewidth}p{0.3100\linewidth}p{0.3100\linewidth}@{}}
+\toprule
+\textbf{CompanyCode} & \textbf{Operator} & \textbf{Contract descriptor} \\ \midrule
+\endfirsthead
+\textbf{CompanyCode} & \textbf{Operator} & \textbf{Contract descriptor} \\ \midrule \endhead
+118 & Rahkam Communications & Upgraded existing;\allowbreak{} provincial \\
+116 & Hooshmand Dayegan & Existing;\allowbreak{} provincial \\
+183 & Roshan Tolou Shargh & Existing;\allowbreak{} provincial \\
+102 & Arg & Existing;\allowbreak{} provincial \\
+100 & Pooyesh Pardaz & Existing;\allowbreak{} provincial \\
+105 & Negaresh Rayaneh & Existing;\allowbreak{} provincial \\
+205 & Fard Iran & Provincial \\
+117 & Rahkam Communications & Upgraded existing;\allowbreak{} provincial \\
+123 & Basir Pardazesh & New;\allowbreak{} headquarters \\
+121 & Tozin Electric & Provincial \\
+206 & Fanap & New;\allowbreak{} provincial \\
+313 & Paya Ravesh Malagar & New;\allowbreak{} provincial \\
+181 & Fard Iran & Headquarters \\
+122 & Negaresh Rayaneh & New;\allowbreak{} headquarters \\
+133 & Arg & Not specified \\
+131 & Ariana & New;\allowbreak{} headquarters \\
+129 & Sairan & New;\allowbreak{} headquarters \\
+184 & Badi Isfahan Intelligent Systems (Bistco) & Existing;\allowbreak{} provincial \\
+207 & Farasoo Tozin & Provincial \\
+136 & Hamsoo & New;\allowbreak{} headquarters \\
+112 & Fanap & Existing;\allowbreak{} provincial \\
+141 & Fanap Infrastructure & New;\allowbreak{} headquarters \\
+140 & Rahkam Iranian Communications & New;\allowbreak{} headquarters \\
+115 & Pand Industries & Not specified \\
+110 & Taba Tozin & Not specified \\
+168 & Isiran & New;\allowbreak{} headquarters \\
+169 & Aria Hamrah & New;\allowbreak{} headquarters \\
+173 & Basir Pardazesh & New;\allowbreak{} provincial \\
+172 & Middle East Alpha Processing & Not specified \\
+177 & Gostaran Sanaye Novin Pars & Provincial \\
+178 & Sairan & New;\allowbreak{} provincial \\
+176 & Arg & New;\allowbreak{} provincial \\
+182 & Asr Rayaneh Parseh Iranian & New;\allowbreak{} provincial \\
+174 & Roshan Tolou Shargh & New;\allowbreak{} provincial \\
+208 & Badi Isfahan Intelligent Systems (Bistco) & New;\allowbreak{} provincial \\
+314 & Sepehr Sharif Intelligent Systems & Not specified \\
+220 & Delta Pars & New;\allowbreak{} provincial \\
+\bottomrule\end{longtable}\endgroup
+\section{Complete plate-letter code reference}
+
+The 34 codes below retain their two-digit identifiers. English letter names describe the encoded symbols;\allowbreak{} D and S are literal Latin-letter categories. The remaining plate digits are pseudonymous indexes and do not recover an actual registration number.
+
+
+\begingroup\small\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{@{}p{0.4775\linewidth}p{0.4775\linewidth}@{}}
+\toprule
+\textbf{Letter code} & \textbf{English symbol name} \\ \midrule
+\endfirsthead
+\textbf{Letter code} & \textbf{English symbol name} \\ \midrule \endhead
+01 & Alef \\
+02 & Beh \\
+03 & Peh \\
+04 & Teh \\
+05 & Theh \\
+06 & Jim \\
+07 & Cheh \\
+08 & Heh (Arabic) \\
+09 & Kheh \\
+10 & Dal \\
+11 & Zal \\
+12 & Reh \\
+13 & Zeh \\
+14 & Zheh \\
+15 & Sin \\
+16 & Shin \\
+17 & Sad \\
+18 & Dad \\
+19 & Ta \\
+20 & Za \\
+21 & Ain \\
+22 & Ghain \\
+23 & Feh \\
+24 & Qaf \\
+25 & Kaf \\
+26 & Gaf \\
+27 & Lam \\
+28 & Mim \\
+29 & Nun \\
+30 & Vav \\
+31 & Heh \\
+32 & Yeh \\
+33 & D \\
+34 & S \\
+\bottomrule\end{longtable}\endgroup
+\end{document}
